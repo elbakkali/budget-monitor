@@ -56,6 +56,20 @@ let budgetController = (() => {
             return newItem
         },
 
+        deleteItem: (type, id) => {
+            let ids, index
+            
+            ids = data.allItems[type].map((current) => {
+                return current.id
+            })
+
+            index = ids.indexOf(id)
+
+            if (index !== -1) {
+                data.allItems[type].splice(index, 1)
+            }
+        },
+
         calculateBudget: () => {
             // Calculate total incomes and expenses
             calculateTotal('exp')
@@ -102,6 +116,7 @@ let UIController = (() => {
         incomeLabel: '.budget_income-value',
         expensesLabel: '.budget_expenses-value',
         percentageLabel: '.budget_expenses-percentage',
+        container: '.container',
     }
     return {
         getInput: () => {
@@ -116,10 +131,10 @@ let UIController = (() => {
 
             if (type === 'inc') {
                 element = DOMstrings.incomeContainer
-                html = '<div class="item clearfix" id="income-%id%"> <div class="item_description">%description%</div> <div class="right clearfix"> <div class="item_value">%value%</div> <div class="item_delete"> <button class="item_delete--btn"><i class="ion-ios-close-outline"></i></button> </div> </div> </div>'
+                html = '<div class="item clearfix" id="inc-%id%"> <div class="item_description">%description%</div> <div class="right clearfix"> <div class="item_value">%value%</div> <div class="item_delete"> <button class="item_delete--btn"><i class="ion-ios-close-outline"></i></button> </div> </div> </div>'
             } else if (type === 'exp') {
                 element = DOMstrings.expensesContainer
-                html = '<div class="item clearfix" id="expense-%id%"> <div class="item_description">%description%</div> <div class="right clearfix"> <div class="item_value">- %value%</div> <div class="item_percentage">21%</div> <div class="item_delete"> <button class="item_delete--btn"><i class="ion-ios-close-outline"></i></button> </div> </div> </div>'
+                html = '<div class="item clearfix" id="exp-%id%"> <div class="item_description">%description%</div> <div class="right clearfix"> <div class="item_value">- %value%</div> <div class="item_percentage">21%</div> <div class="item_delete"> <button class="item_delete--btn"><i class="ion-ios-close-outline"></i></button> </div> </div> </div>'
             }
 
             newhtml = html.replace('%id%', obj.id)
@@ -127,6 +142,10 @@ let UIController = (() => {
             newhtml = newhtml.replace('%value%', obj.value)
 
             document.querySelector(element).insertAdjacentHTML('beforeend', newhtml)
+        },
+        deleteListItem: (selectorID) => {
+            let el = document.getElementById(selectorID)
+            el.parentNode.removeChild(el)
         },
         clearFields: () => {
             let fields, fieldsArray
@@ -168,6 +187,8 @@ let controller = ((budgetCtrl, UICtrl) => {
                 ctrlAddItem()
             }
         })
+
+        document.querySelector(DOM.container).addEventListener('click', ctrlDeleteItem)
     }
 
     let updateBudget = () => {
@@ -197,6 +218,20 @@ let controller = ((budgetCtrl, UICtrl) => {
 
         // Calculate and update budget
         updateBudget()
+    }
+
+    let ctrlDeleteItem = (event) => {
+        let itemID, splitID, type, ID
+        itemID = event.target.parentNode.parentNode.parentNode.parentNode.id
+        if(itemID) {
+            splitID = itemID.split('-')
+            type = splitID[0]
+            ID = parseInt(splitID[1])
+
+            budgetController.deleteItem(type, ID)
+            UIController.deleteListItem(itemID)
+            updateBudget()
+        }
     }
 
     return {
