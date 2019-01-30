@@ -149,6 +149,25 @@ let UIController = (() => {
         container: '.container',
         expensesPercLabel: '.item_percentage',
     }
+
+    let formatNumber = (num, type) => {
+        let numSplit, int, dec
+        num = Math.abs(num)
+        num = num.toFixed(2)
+
+        numSplit = num.split('.')
+        int = numSplit[0]
+        if(int.length > 3) {
+            console.log('int')
+            // input 2310, output 2,310
+            int = int.substr(0, int.length - 3) + ',' + int.substr(int.length - 3, 3)
+        }
+
+        dec = numSplit[1]
+
+        return (type === 'exp' ? '-' : '+') + ' ' + int + '.' + dec
+    }
+    
     return {
         getInput: () => {
             return {
@@ -165,12 +184,12 @@ let UIController = (() => {
                 html = '<div class="item clearfix" id="inc-%id%"> <div class="item_description">%description%</div> <div class="right clearfix"> <div class="item_value">%value%</div> <div class="item_delete"> <button class="item_delete--btn"><i class="ion-ios-close-outline"></i></button> </div> </div> </div>'
             } else if (type === 'exp') {
                 element = DOMstrings.expensesContainer
-                html = '<div class="item clearfix" id="exp-%id%"> <div class="item_description">%description%</div> <div class="right clearfix"> <div class="item_value">- %value%</div> <div class="item_percentage">21%</div> <div class="item_delete"> <button class="item_delete--btn"><i class="ion-ios-close-outline"></i></button> </div> </div> </div>'
+                html = '<div class="item clearfix" id="exp-%id%"> <div class="item_description">%description%</div> <div class="right clearfix"> <div class="item_value">%value%</div> <div class="item_percentage">21%</div> <div class="item_delete"> <button class="item_delete--btn"><i class="ion-ios-close-outline"></i></button> </div> </div> </div>'
             }
 
             newhtml = html.replace('%id%', obj.id)
             newhtml = newhtml.replace('%description%', obj.description)
-            newhtml = newhtml.replace('%value%', obj.value)
+            newhtml = newhtml.replace('%value%', formatNumber(obj.value, type))
 
             document.querySelector(element).insertAdjacentHTML('beforeend', newhtml)
         },
@@ -190,9 +209,10 @@ let UIController = (() => {
             fieldsArray[0].focus()
         },
         displayBudget: (obj) => {
-            document.querySelector(DOMstrings.budgetLabel).textContent = obj.budget
-            document.querySelector(DOMstrings.incomeLabel).textContent = obj.totalInc
-            document.querySelector(DOMstrings.expensesLabel).textContent = obj.totalExp
+            let type = obj.budget > 0 ? 'inc' : 'exp'
+            document.querySelector(DOMstrings.budgetLabel).textContent = formatNumber(obj.budget, type)
+            document.querySelector(DOMstrings.incomeLabel).textContent = formatNumber(obj.totalInc, 'inc')
+            document.querySelector(DOMstrings.expensesLabel).textContent = formatNumber(obj.totalExp, 'exp')
 
             if (obj.percentage > 0) {
                 document.querySelector(DOMstrings.percentageLabel).textContent = obj.percentage
